@@ -7,7 +7,7 @@ import { interfaces } from 'mocha';
 
 export async function getProfileData(connection: core.Connection, profilesStr: string, permissionType? : string) : Promise<Interfaces.StandardProfile[]> {
 
-	const profileData = await connection.query("SELECT Id, Name FROM Profile WHERE userType = 'Standard' order by Name");
+	const profileData = await connection.query("SELECT Id, Name FROM Profile order by Name");
 
 	let profiles = profilesStr.split(',').map(p => p.trim());
 
@@ -16,7 +16,7 @@ export async function getProfileData(connection: core.Connection, profilesStr: s
 	const standardProfiles: Interfaces.StandardProfile[] = profileRecords.map((v: { Id, Name }) => { return { id: v.Id, name: v.Name, metaName: '', objectPermissions: [] } });
 	const metaProfileData = await connection.metadata.list({ type: 'Profile' }, connection.getApiVersion());
 	standardProfiles.forEach(s => {
-		 let profileInfo = metaProfileData.find(m => m.id == s.id); 
+		 let profileInfo = metaProfileData.find(m => m.id == s.id);
 		 s.metaName = decodeURIComponent(profileInfo.fullName);
 	});
 
@@ -106,16 +106,16 @@ export async function getNonPermissionableFields(connection: core.Connection, so
 								.join("','") + "'";
 
 	const nonPermissionableResult = await connection.tooling.query(
-		'SELECT NamespacePrefix, QualifiedApiName ' + 
+		'SELECT NamespacePrefix, QualifiedApiName ' +
 		'FROM EntityParticle ' +
-		'WHERE isPermissionable = false ' + 
+		'WHERE isPermissionable = false ' +
 		'AND EntityDefinition.QualifiedApiName IN (' + sobjectsList + ') ' +
 		'AND QualifiedApiName ' +
 		'    NOT IN (\'Id\',\'IsDeleted\', \'Name\', \'RecordTypeId\', \'CreatedDate\',' +
 					'\'CreatedById\', \'LastModifiedDate\', \'LastModifiedById\',' +
 					'\'SystemModstamp\', \'LastActivityDate\', \'OwnerId\', \'LastViewedDate\',' +
-					'\'LastReferencedDate\')' 
-	); 
+					'\'LastReferencedDate\')'
+	);
 
 	nonPermissionableResult.records.map((r: { NamespacePrefix, QualifiedApiName}) =>
 		nonPermissionableSet.add(r.NamespacePrefix != undefined ? r.NamespacePrefix + '__' +  r.QualifiedApiName: r.QualifiedApiName));
